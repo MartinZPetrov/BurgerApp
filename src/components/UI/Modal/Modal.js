@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import classes from './modal.module.css';
 import Backdrop from '../Backdrop/Backdrop';
-import Aux from '../../../hoc/Aux';
+import Aux from '../../../hoc/Auxiliary/Auxiliary';
 
 class Modal extends Component {
   shouldComponentUpdate(nextProps, nextState) {
