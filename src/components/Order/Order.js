@@ -8,7 +8,7 @@ function Order(props) {
       name: ingredientName,
       amount: props.ingredients[ingredientName]
     });
-  }
+}
 
   let ingredientOutput = ingredients.map(ig => {
     return <span style={{textTransform: 'capitalize',

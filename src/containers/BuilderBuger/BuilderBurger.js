@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { connect } from 'react-redux'
+import { connect } from 'react-redux';
 import Aux from '../../hoc/Auxiliary/Auxiliary';
 import Burger from '../../components/Burger/Burger';
 import BuildControls from '../../components/Burger/BuildControls/BuildControls';
@@ -9,7 +9,7 @@ import axios from '../../axios-orders';
 import Spinner from '../../components/UI/Spinner/Spinner';
 import withErrorHandler from '../../hoc/withErrorHandler/withErrorHandler';
 import * as actionTypes from '../../store/actions';
-
+import * as burgerBuilderActions from '../../store/actions/index';
 
 const INGREDIENTS_PRICES = {
   salad: 0.5,
@@ -19,12 +19,20 @@ const INGREDIENTS_PRICES = {
 };
 export class BuilderBurger extends Component {
   state = {
-    purchasing: false,
-    loading: false,
-    error: false
+    purchasing: false
   };
 
   componentDidMount() {
+    this.props.onInitIngredients();
+    // console.log(this.props);
+    // axios
+    //   .get('https://react-burger-app-42e76.firebaseio.com/ingredients.json')
+    //   .then(response => {
+    //     this.setState({ ingredients: response.data });
+    //   })
+    //   .catch(error => {
+    //     this.setState({ error: true });
+    //   });
   }
 
   purchaseHandler = () => {
@@ -40,7 +48,7 @@ export class BuilderBurger extends Component {
         return acc + next;
       }, 0);
 
-    return sum > 0 ;
+    return sum > 0;
   };
   addIngredientHelper = type => {
     const oldCount = this.state.ingredients[type];
@@ -78,10 +86,8 @@ export class BuilderBurger extends Component {
   };
 
   purchaseContinueHandler = () => {
-    console.log(this.props);
-
+    this.props.onInitPurchase();
     this.props.history.push('/checkout');
-    
   };
 
   render() {
@@ -93,7 +99,11 @@ export class BuilderBurger extends Component {
     }
 
     let orderSummary = null;
-    let burger = this.state.error ? <p>Ingridients can`t be loaded</p>  :  <Spinner />;
+    let burger = this.props.error ? (
+      <p>Ingridients can`t be loaded</p>
+    ) : (
+      <Spinner />
+    );
 
     if (this.props.ings) {
       burger = (
@@ -111,7 +121,7 @@ export class BuilderBurger extends Component {
       );
       orderSummary = (
         <OrderSummary
-          price={this.props.price }
+          price={this.props.price}
           purchaseCancled={this.purchaseCancelhandler}
           purchaseContinue={this.purchaseContinueHandler}
           ingredients={this.props.ings}
@@ -119,15 +129,12 @@ export class BuilderBurger extends Component {
       );
     }
 
-    if (this.state.loading) {
-      orderSummary = <Spinner />;
-    }
-
     return (
       <Aux>
         <Modal
           modalClosed={this.purchaseCancelhandler}
-          show={this.state.purchasing}>
+          show={this.state.purchasing}
+        >
           {orderSummary}
         </Modal>
         {burger}
@@ -138,16 +145,23 @@ export class BuilderBurger extends Component {
 
 const mapStateToProps = state => {
   return {
-    ings: state.ingredients,
-    price: state.totalPrice
-  }
-}
+    ings: state.burgerBuilder.ingredients,
+    price: state.burgerBuilder.totalPrice,
+    error: state.burgerBuilder.error
+  };
+};
 const mapDispatchToProps = dispatch => {
   return {
-    onIngredientAdded : (ingName) => dispatch({type:  actionTypes.ADD_INGREDIENT, ingredientName:ingName}) ,
-    onIngredientRemoved: (ingName) => dispatch({type:  actionTypes.REMOVE_INGREDIENT, ingredientName:ingName})
-  }
-}
+    onIngredientAdded: ingName =>
+      dispatch(burgerBuilderActions.addIngredient(ingName)),
+    onIngredientRemoved: ingName =>
+      dispatch(burgerBuilderActions.removeIngredient(ingName)),
+    onInitIngredients: () => dispatch(burgerBuilderActions.initIngredients()),
+    onInitPurchase: () => dispatch(burgerBuilderActions.purchaseInit())
+  };
+};
 
-export default connect(mapStateToProps, mapDispatchToProps)(withErrorHandler(BuilderBurger, axios));
-
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(withErrorHandler(BuilderBurger, axios));
